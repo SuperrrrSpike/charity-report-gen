@@ -1,0 +1,24 @@
+[build]
+publish = "web"
+
+[[redirects]]
+from = "/"
+to = "/index.html"
+status = 200
+
+[[redirects]]
+from = "/demo"
+to = "/demo.html"
+status = 200
+
+[[redirects]]
+from = "/out/*"
+to = "/out/:splat"
+status = 200
+
+[[headers]]
+for = "/*"
+[headers.values]
+X-Content-Type-Options = "nosniff"
+X-Frame-Options = "DENY"
+Referrer-Policy = "strict-origin-when-cross-origin"

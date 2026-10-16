@@ -1,0 +1,45 @@
+{
+  "schema_version": "1.0",
+  "case_id": "pediatric-aid-2025",
+  "title": "重疾患儿医疗救助",
+  "year": 2025,
+  "operator": "晨光儿童医疗救助专项基金",
+  "registration_no": "基证字第 6110xxxx 号",
+  "audit_firm": "毕马威华振会计师事务所",
+  "income_total": 11980000,
+  "expense_total": 12170000,
+  "income_breakdown": [
+    {
+      "source": "公众定向捐赠",
+      "amount": 6800000
+    },
+    {
+      "source": "企业专项配捐",
+      "amount": 4200000
+    },
+    {
+      "source": "腾讯公益平台配捐",
+      "amount": 980000
+    }
+  ],
+  "expense_breakdown": [
+    {
+      "item": "患儿医疗费用直付",
+      "amount": 11480000
+    },
+    {
+      "item": "愈后随访与康复补贴",
+      "amount": 380000
+    },
+    {
+      "item": "项目人员与差旅",
+      "amount": 220000
+    },
+    {
+      "item": "信息披露与平台运营",
+      "amount": 90000
+    }
+  ],
+  "beneficiaries": "234 例 / 21 省 / 12 病种",
+  "disclosure_url": "https://gongyi.example.org/pediatric-aid-2025"
+}

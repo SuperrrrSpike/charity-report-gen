@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "case_id": "spark-library-2025",
+  "title": "星火图书馆计划",
+  "year": 2025,
+  "operator": "星火教育公益基金会",
+  "registration_no": "基证字第 5320xxxx 号",
+  "audit_firm": "立信会计师事务所（特殊普通合伙）",
+  "income_total": 2350000,
+  "expense_total": 2260000,
+  "income_breakdown": [
+    {
+      "source": "公众小额捐赠",
+      "amount": 1280000
+    },
+    {
+      "source": "企业配捐",
+      "amount": 720000
+    },
+    {
+      "source": "基金会自有资金",
+      "amount": 350000
+    }
+  ],
+  "expense_breakdown": [
+    {
+      "item": "图书采购与运输",
+      "amount": 1180000
+    },
+    {
+      "item": "馆内硬件（书架/桌椅）",
+      "amount": 480000
+    },
+    {
+      "item": "志愿者培训与差旅",
+      "amount": 240000
+    },
+    {
+      "item": "评估与回访",
+      "amount": 180000
+    },
+    {
+      "item": "项目管理费用",
+      "amount": 180000
+    }
+  ],
+  "beneficiaries": "18,500 人次 / 72 馆 / 12 县",
+  "disclosure_url": "https://gongyi.example.org/spark-library-2025"
+}

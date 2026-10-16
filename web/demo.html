@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>案例详情 · 慈善合规报告生成器</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
+  <style>
+    body { background: #f8fafc; }
+    .card-shadow { box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06); }
+    pre.report { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; line-height: 1.6; }
+    .tab-active { color: #059669; border-bottom: 2px solid #059669; font-weight: 600; }
+  </style>
+</head>
+<body class="font-sans text-slate-800">
+
+  <div class="container mx-auto px-6 py-8">
+    <a href="index.html" class="text-sm text-slate-500 hover:text-emerald-600"><i class="fa fa-arrow-left"></i> 返回案例列表</a>
+
+    <header class="mt-4 flex flex-wrap items-end justify-between gap-3">
+      <div>
+        <h1 id="title" class="text-2xl md:text-3xl font-bold tracking-tight">加载中…</h1>
+        <p id="subtitle" class="text-slate-500 mt-1"></p>
+      </div>
+      <div id="meta" class="flex flex-wrap gap-2 text-xs text-slate-500"></div>
+    </header>
+
+    <!-- B/C 端视图切换 -->
+    <div class="mt-8 border-b border-slate-200 flex gap-6 text-sm">
+      <button data-tab="donor" class="tab-btn py-3 px-1 text-slate-500 hover:text-emerald-600">C 端 · 捐赠人友好版</button>
+      <button data-tab="standard" class="tab-btn py-3 px-1 tab-active">B 端 · 标准合规版</button>
+      <button data-tab="schema" class="tab-btn py-3 px-1 text-slate-500 hover:text-emerald-600">监管 · JSON Schema</button>
+    </div>
+
+    <main class="mt-6 grid lg:grid-cols-3 gap-6">
+      <article id="report" class="lg:col-span-2 card-shadow rounded-2xl bg-white p-6">
+        <pre class="report" id="report-body">加载中…</pre>
+      </article>
+
+      <aside class="card-shadow rounded-2xl bg-white p-6">
+        <h3 class="font-semibold mb-3 text-slate-700">项目关键数字</h3>
+        <dl id="kpi" class="text-sm space-y-2"></dl>
+
+        <hr class="my-5 border-slate-100" />
+
+        <h3 class="font-semibold mb-3 text-slate-700">导出 / 分享</h3>
+        <div class="flex flex-col gap-2 text-sm">
+          <button id="copy-md" class="text-left px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200"><i class="fa fa-clipboard mr-2"></i>复制 Markdown</button>
+          <button id="open-schema" class="text-left px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200"><i class="fa fa-code mr-2"></i>查看 JSON Schema</button>
+        </div>
+
+        <hr class="my-5 border-slate-100" />
+
+        <h3 class="font-semibold mb-3 text-slate-700">AI 边界</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          所有财务数字、机构登记号、审计日期来自原始素材；AI 仅做结构化抽取和文案润色，不参与财务数字生成，不替代法人签字。
+        </p>
+      </aside>
+    </main>
+
+    <footer class="mt-10 text-center text-xs text-slate-400">
+      <p>个人原型项目 · 所有数据均为虚构示例 · 仅用于产品体验与岗位投递展示</p>
+    </footer>
+  </div>
+
+  <script>
+    const CASES = {
+      "spark-library": {
+        title: "星火图书馆计划",
+        subtitle: "让乡村孩子拥有自己的图书馆",
+        meta: ["教育公平", "中西部 12 县", "2025"],
+        md: { standard: "../out/spark-library-2025/standard.md", donor: "../out/spark-library-2025/donor.md" },
+        json: "../out/spark-library-2025/schema.json"
+      },
+      "pediatric-aid": {
+        title: "重疾患儿医疗救助",
+        subtitle: "0–14 岁困境家庭大病医疗专项",
+        meta: ["生命救助", "全国 21 省", "2025"],
+        md: { standard: "../out/pediatric-aid-2025/standard.md", donor: "../out/pediatric-aid-2025/donor.md" },
+        json: "../out/pediatric-aid-2025/schema.json"
+      },
+      "flood-response": {
+        title: "暴雨应急救援响应",
+        subtitle: "72 小时黄金救援与灾后安置",
+        meta: ["应急响应", "华南 4 省", "2025"],
+        md: { standard: "../out/flood-response-2025/standard.md", donor: "../out/flood-response-2025/donor.md" },
+        json: "../out/flood-response-2025/schema.json"
+      }
+    };
+
+    function getCase() {
+      const id = new URLSearchParams(location.search).get("case") || "spark-library";
+      return { id, ...CASES[id] };
+    }
+
+    function fmtMoney(n) { return "¥" + Number(n).toLocaleString(); }
+
+    async function loadText(path) {
+      try { return await (await fetch(path)).text(); }
+      catch (e) { return "[加载失败] " + e.message; }
+    }
+
+    async function loadJSON(path) {
+      try { return await (await fetch(path)).json(); }
+      catch (e) { return null; }
+    }
+
+    async function renderTab(c, tab) {
+      const body = document.getElementById("report-body");
+      if (tab === "schema") {
+        const data = await loadJSON(c.json);
+        body.textContent = data ? JSON.stringify(data, null, 2) : "[JSON 加载失败]";
+        document.getElementById("kpi").innerHTML = "";
+        return;
+      }
+      body.textContent = await loadText(c.md[tab]);
+      if (tab === "standard") {
+        const data = await loadJSON(c.json);
+        if (data) {
+          const k = document.getElementById("kpi");
+          k.innerHTML = "";
+          [
+            ["项目编号", data.case_id],
+            ["执行机构", data.operator],
+            ["登记证书号", data.registration_no],
+            ["审计机构", data.audit_firm],
+            ["收入合计", fmtMoney(data.income_total)],
+            ["支出合计", fmtMoney(data.expense_total)],
+            ["受益人", data.beneficiaries],
+          ].forEach(([label, value]) => {
+            k.insertAdjacentHTML("beforeend",
+              `<div class="flex justify-between gap-3"><dt class="text-slate-500">${label}</dt><dd class="text-slate-800 text-right">${value}</dd></div>`);
+          });
+        }
+      }
+    }
+
+    function setActiveTab(btn) {
+      document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("tab-active"));
+      btn.classList.add("tab-active");
+    }
+
+    async function init() {
+      const c = getCase();
+      document.getElementById("title").textContent = c.title;
+      document.getElementById("subtitle").textContent = c.subtitle;
+      document.getElementById("meta").innerHTML = c.meta
+        .map(m => `<span class="px-2 py-1 rounded bg-slate-100">${m}</span>`).join("");
+
+      document.querySelectorAll(".tab-btn").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          setActiveTab(btn);
+          await renderTab(c, btn.dataset.tab);
+        });
+      });
+
+      document.getElementById("copy-md").addEventListener("click", async () => {
+        const txt = document.getElementById("report-body").textContent;
+        try { await navigator.clipboard.writeText(txt); alert("已复制到剪贴板"); }
+        catch (e) { alert("复制失败：" + e.message); }
+      });
+
+      document.getElementById("open-schema").addEventListener("click", () => {
+        window.open(c.json, "_blank");
+      });
+
+      setActiveTab(document.querySelector('[data-tab="standard"]'));
+      await renderTab(c, "standard");
+    }
+
+    init();
+  </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>慈善合规报告生成器 · Charity Compliance Report Generator</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
+  <style>
+    body { background: linear-gradient(135deg, #f0f9ff 0%, #ecfdf5 100%); min-height: 100vh; }
+    .card-shadow { box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08); }
+    .tag { font-size: 11px; padding: 2px 10px; border-radius: 9999px; }
+    .tag-edu { background: #dbeafe; color: #1d4ed8; }
+    .tag-life { background: #fee2e2; color: #b91c1c; }
+    .tag-emerge { background: #fef3c7; color: #b45309; }
+  </style>
+</head>
+<body class="font-sans text-slate-800">
+
+  <header class="container mx-auto px-6 pt-12 pb-8">
+    <div class="flex items-center gap-3 mb-3">
+      <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-emerald-500 text-white">
+        <i class="fa fa-file-text-o text-lg"></i>
+      </span>
+      <span class="text-xl font-semibold tracking-tight">慈善合规报告生成器</span>
+      <span class="tag bg-slate-200 text-slate-700">个人原型 · vibe coding demo</span>
+    </div>
+    <h1 class="text-3xl md:text-4xl font-bold leading-tight max-w-3xl">
+      让中小公益机构 <span class="text-emerald-600">5 分钟</span> 生成一份
+      <span class="text-emerald-600">慈善法信息披露</span> 级别的合规报告
+    </h1>
+    <p class="mt-4 text-slate-600 max-w-2xl">
+      上传项目原始素材 → AI 结构化提取 → 一键输出
+      <span class="font-semibold">标准合规版</span>、
+      <span class="font-semibold">捐赠人友好版</span>、
+      <span class="font-semibold">监管表格 JSON</span> 三份报告，附可分享的捐赠人公示页。
+    </p>
+    <div class="mt-6 flex flex-wrap gap-3 text-sm text-slate-500">
+      <span><i class="fa fa-check-circle text-emerald-500 mr-1"></i> 双版本同屏对照（B/C 端）</span>
+      <span><i class="fa fa-check-circle text-emerald-500 mr-1"></i> LLM provider 切换（Anthropic / OpenAI）</span>
+      <span><i class="fa fa-check-circle text-emerald-500 mr-1"></i> 监管 JSON Schema</span>
+      <span><i class="fa fa-check-circle text-emerald-500 mr-1"></i> 财务数字来自原始素材，AI 不编造</span>
+    </div>
+  </header>
+
+  <section class="container mx-auto px-6 pb-16">
+    <h2 class="text-xl font-semibold mb-4 text-slate-700">3 个真实风格 mock 案例</h2>
+    <div class="grid md:grid-cols-3 gap-6">
+
+      <a href="demo.html?case=spark-library" class="block card-shadow rounded-2xl bg-white p-6 hover:-translate-y-1 transition">
+        <div class="flex items-center justify-between mb-3">
+          <span class="tag tag-edu">教育公平</span>
+          <span class="text-xs text-slate-400">2025</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">星火图书馆计划</h3>
+        <p class="text-sm text-slate-600 mb-3">让乡村孩子拥有自己的图书馆。中西部 12 县、72 馆、受益学生 18,500 人次。</p>
+        <div class="text-xs text-slate-500 space-y-1">
+          <div><i class="fa fa-map-marker w-4"></i> 中西部 12 县</div>
+          <div><i class="fa fa-book w-4"></i> 18,500 人次借阅</div>
+          <div><i class="fa fa-jpy w-4"></i> ¥235 万 总预算</div>
+        </div>
+      </a>
+
+      <a href="demo.html?case=pediatric-aid" class="block card-shadow rounded-2xl bg-white p-6 hover:-translate-y-1 transition">
+        <div class="flex items-center justify-between mb-3">
+          <span class="tag tag-life">生命救助</span>
+          <span class="text-xs text-slate-400">2025</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">重疾患儿医疗救助</h3>
+        <p class="text-sm text-slate-600 mb-3">0–14 岁困境家庭大病医疗专项，全年资助 234 例，覆盖 12 类病种、21 省。</p>
+        <div class="text-xs text-slate-500 space-y-1">
+          <div><i class="fa fa-map-marker w-4"></i> 全国 21 省</div>
+          <div><i class="fa fa-heart w-4"></i> 234 例资助</div>
+          <div><i class="fa fa-jpy w-4"></i> ¥1,198 万 资助金额</div>
+        </div>
+      </a>
+
+      <a href="demo.html?case=flood-response" class="block card-shadow rounded-2xl bg-white p-6 hover:-translate-y-1 transition">
+        <div class="flex items-center justify-between mb-3">
+          <span class="tag tag-emerge">应急响应</span>
+          <span class="text-xs text-slate-400">2025</span>
+        </div>
+        <h3 class="text-lg font-semibold mb-2">暴雨应急救援响应</h3>
+        <p class="text-sm text-slate-600 mb-3">72 小时黄金救援与灾后安置，转移群众 1,200 人，发放应急包 4,800 份。</p>
+        <div class="text-xs text-slate-500 space-y-1">
+          <div><i class="fa fa-map-marker w-4"></i> 华南 4 省</div>
+          <div><i class="fa fa-life-ring w-4"></i> 6 支救援队</div>
+          <div><i class="fa fa-jpy w-4"></i> ¥314 万 总投入</div>
+        </div>
+      </a>
+
+    </div>
+
+    <div class="mt-10 card-shadow rounded-2xl bg-white p-6">
+      <h3 class="font-semibold mb-2">为什么这是 vibe coding 的体现？</h3>
+      <p class="text-sm text-slate-600 leading-relaxed">
+        PRD 草拟 → 3 个 mock 案例 JSON → 渲染脚本 → 单页 Web，全程用 AI 辅助；财务数字、机构登记号、审计日期等关键字段均来自原始素材，AI 仅负责结构化抽取和文案润色。
+        仓库内 <code>scripts/extract.py</code> 支持 Anthropic / OpenAI provider 切换，便于在不同环境下交付。
+      </p>
+    </div>
+
+    <div class="mt-8 text-center text-xs text-slate-400">
+      <p>个人原型项目 · 所有数据均为虚构示例 · 仅用于产品体验与岗位投递展示</p>
+    </div>
+  </section>
+
+</body>
+</html>

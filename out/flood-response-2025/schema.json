@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "case_id": "flood-response-2025",
+  "title": "暴雨应急救援响应",
+  "year": 2025,
+  "operator": "蓝盾应急救援联合行动",
+  "registration_no": "基证字第 4498xxxx 号",
+  "audit_firm": "天健会计师事务所（特殊普通合伙）",
+  "income_total": 3140000,
+  "expense_total": 2760000,
+  "income_breakdown": [
+    {
+      "source": "公众应急捐款",
+      "amount": 1680000
+    },
+    {
+      "source": "企业定向捐赠（物资折算）",
+      "amount": 920000
+    },
+    {
+      "source": "救援装备折算",
+      "amount": 540000
+    }
+  ],
+  "expense_breakdown": [
+    {
+      "item": "救援装备与耗材",
+      "amount": 980000
+    },
+    {
+      "item": "应急包与食品",
+      "amount": 760000
+    },
+    {
+      "item": "救援人员差旅与保险",
+      "amount": 460000
+    },
+    {
+      "item": "灾后安置与心理援助",
+      "amount": 380000
+    },
+    {
+      "item": "信息平台与通讯",
+      "amount": 180000
+    }
+  ],
+  "beneficiaries": "1,200 人转移 / 4,800 份应急包 / 6 支救援队",
+  "disclosure_url": "https://gongyi.example.org/flood-response-2025"
+}
