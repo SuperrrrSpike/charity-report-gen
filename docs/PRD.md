@@ -96,7 +96,7 @@
 
 | Day | 任务 | 产出 |
 |---|---|---|
-| Day 1 | PRD 定��� + mock 数据写齐 | docs/PRD.md, mock/*.json |
+| Day 1 | PRD 定稿 + mock 数据写齐 | docs/PRD.md, mock/*.json |
 | Day 2 | AI 提取 prompt + JSON schema + CLI 脚本 | scripts/extract.py + 测试通过 |
 | Day 3 | 单页 HTML（首页 + 案例详情） | web/index.html, demo.html |
 | Day 4 | 生成入口页 + 报告预览页 | web/generate.html, generate_done.html |

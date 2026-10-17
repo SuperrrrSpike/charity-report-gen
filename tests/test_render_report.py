@@ -12,6 +12,11 @@ from render_report import render_donor, render_schema, render_standard, validate
 
 
 class RenderReportTests(unittest.TestCase):
+    def test_user_visible_sources_have_no_replacement_characters(self):
+        paths = [*(ROOT / "mock").glob("*.json"), ROOT / "docs/PRD.md"]
+        for path in paths:
+            self.assertNotIn("\ufffd", path.read_text(encoding="utf-8"), str(path))
+
     @classmethod
     def setUpClass(cls):
         cls.case = json.loads((ROOT / "mock/spark-library.json").read_text(encoding="utf-8"))
