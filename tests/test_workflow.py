@@ -5,6 +5,7 @@ from pathlib import Path
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -162,6 +163,103 @@ class ReviewWorkflowTests(unittest.TestCase):
             self.assertNotIn(material, audit)
             for line in audit.splitlines():
                 json.loads(line)
+
+    def test_approved_workflow_can_retry_after_render_failure(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary) / "case"
+            start_workflow(self.material, workspace, provider="mock")
+
+            with mock.patch(
+                "workflow._render_approved_case",
+                side_effect=OSError("fixture render failure"),
+            ):
+                with self.assertRaisesRegex(OSError, "fixture render failure"):
+                    review_workflow(
+                        workspace,
+                        approve=True,
+                        reviewer="Demo Reviewer",
+                    )
+
+            interrupted = json.loads(
+                (workspace / "workflow.json").read_text(encoding="utf-8")
+            )
+            self.assertEqual(interrupted["state"], "approved")
+
+            completed = review_workflow(
+                workspace,
+                approve=True,
+                reviewer="Ignored On Retry",
+            )
+
+            self.assertEqual(completed["state"], "rendered")
+            events = [
+                json.loads(line)["event"]
+                for line in (workspace / "audit.jsonl")
+                .read_text(encoding="utf-8")
+                .splitlines()
+            ]
+            self.assertEqual(events.count("human_review_completed"), 1)
+            self.assertEqual(events.count("reports_rendered"), 1)
+
+    def test_approved_workflow_recovers_after_output_publish_interruption(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary) / "case"
+            start_workflow(self.material, workspace, provider="mock")
+            from workflow import _write_json as real_write_json
+
+            def interrupt_final_state(path, payload):
+                if payload.get("state") == "rendered":
+                    raise OSError("fixture state write failure")
+                real_write_json(path, payload)
+
+            with mock.patch(
+                "workflow._write_json", side_effect=interrupt_final_state
+            ):
+                with self.assertRaisesRegex(OSError, "fixture state write failure"):
+                    review_workflow(
+                        workspace,
+                        approve=True,
+                        reviewer="Demo Reviewer",
+                    )
+
+            self.assertTrue((workspace / "out/schema.json").exists())
+            completed = review_workflow(
+                workspace,
+                approve=True,
+                reviewer="Ignored On Retry",
+            )
+            self.assertEqual(completed["state"], "rendered")
+
+    def test_retry_refuses_modified_published_output(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary) / "case"
+            start_workflow(self.material, workspace, provider="mock")
+            from workflow import _write_json as real_write_json
+
+            def interrupt_final_state(path, payload):
+                if payload.get("state") == "rendered":
+                    raise OSError("fixture state write failure")
+                real_write_json(path, payload)
+
+            with mock.patch(
+                "workflow._write_json", side_effect=interrupt_final_state
+            ):
+                with self.assertRaises(OSError):
+                    review_workflow(
+                        workspace,
+                        approve=True,
+                        reviewer="Demo Reviewer",
+                    )
+            (workspace / "out/standard.md").write_text(
+                "modified", encoding="utf-8"
+            )
+
+            with self.assertRaisesRegex(WorkflowError, "does not match"):
+                review_workflow(
+                    workspace,
+                    approve=True,
+                    reviewer="Ignored On Retry",
+                )
 
 
 if __name__ == "__main__":

@@ -226,18 +226,37 @@ def start_workflow(material: str, workspace: Path, *, provider: str) -> dict:
 
 def _render_approved_case(workspace: Path, case: dict) -> list[dict]:
     target = workspace / "out"
+    outputs = {
+        "standard.md": render_standard(case),
+        "donor.md": render_donor(case),
+        "schema.json": json.dumps(
+            render_schema(case), ensure_ascii=False, indent=2
+        ),
+    }
     if target.exists():
-        raise WorkflowError(f"Output directory already exists: {target}")
+        existing_names = (
+            {path.name for path in target.iterdir()} if target.is_dir() else set()
+        )
+        matches = existing_names == set(outputs) and all(
+            (target / name).is_file()
+            and (target / name).read_text(encoding="utf-8") == content
+            for name, content in outputs.items()
+        )
+        if not matches:
+            raise WorkflowError(
+                f"Existing output does not match approved case: {target}"
+            )
+        return [
+            {
+                "path": f"out/{name}",
+                "sha256": _sha256_bytes((target / name).read_bytes()),
+                "size_bytes": (target / name).stat().st_size,
+            }
+            for name in sorted(outputs)
+        ]
     staging = workspace / f".out.{uuid4().hex[:8]}.tmp"
     staging.mkdir()
     try:
-        outputs = {
-            "standard.md": render_standard(case),
-            "donor.md": render_donor(case),
-            "schema.json": json.dumps(
-                render_schema(case), ensure_ascii=False, indent=2
-            ),
-        }
         for name, content in outputs.items():
             (staging / name).write_text(content, encoding="utf-8")
         artifacts = [
@@ -265,6 +284,21 @@ def review_workflow(
     workspace = Path(workspace)
     workflow = _load_workflow(workspace)
     if approve and workflow["state"] == "rendered":
+        return workflow
+    if approve and workflow["state"] == "approved":
+        case = json.loads((workspace / "extracted.json").read_text(encoding="utf-8"))
+        artifacts = _render_approved_case(workspace, case)
+        workflow["state"] = "rendered"
+        workflow["artifacts"] = artifacts
+        workflow["updated_at_utc"] = _utc_now()
+        _write_json(workspace / "workflow.json", workflow)
+        _append_audit(
+            workspace,
+            "reports_rendered",
+            "approved",
+            "rendered",
+            {"artifacts": [item["path"] for item in artifacts]},
+        )
         return workflow
     if workflow["state"] != "review_required":
         raise WorkflowError(
