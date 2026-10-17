@@ -163,6 +163,7 @@ def start_workflow(material: str, workspace: Path, *, provider: str) -> dict:
     workspace = Path(workspace)
     if workspace.exists():
         raise WorkflowError(f"Workflow workspace already exists: {workspace}")
+    case = _extract_case(material, provider)
     workspace.mkdir(parents=True)
     source_bytes = material.encode("utf-8")
     source_sha256 = _sha256_bytes(source_bytes)
@@ -187,7 +188,6 @@ def start_workflow(material: str, workspace: Path, *, provider: str) -> dict:
         {"provider": provider, "source_sha256": source_sha256},
     )
 
-    case = _extract_case(material, provider)
     _write_json(workspace / "extracted.json", case)
     _append_audit(workspace, "case_extracted", "ingested", "extracted")
     workflow["state"] = "extracted"

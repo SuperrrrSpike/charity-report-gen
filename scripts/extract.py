@@ -48,12 +48,18 @@ SCHEMA = {
 }
 
 
+class ExtractionError(ValueError):
+    """Raised when a provider cannot return a usable structured case."""
+
+
 def call_anthropic(material: str) -> dict:
     import urllib.request
 
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        sys.exit("需要 ANTHROPIC_API_KEY 环境变量，或改用 --mock 走离线示例")
+        raise ExtractionError(
+            "需要 ANTHROPIC_API_KEY 环境变量，或改用 --mock 走离线示例"
+        )
 
     body = {
         "model": "claude-sonnet-4-6",
@@ -72,7 +78,12 @@ def call_anthropic(material: str) -> dict:
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = json.loads(resp.read())
-    text = data["content"][0]["text"]
+    try:
+        text = data["content"][0]["text"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ExtractionError("Anthropic response shape is invalid") from exc
+    if not isinstance(text, str):
+        raise ExtractionError("Anthropic response shape is invalid")
     return _parse_json(text)
 
 
@@ -82,7 +93,7 @@ def call_openai(material: str) -> dict:
     api_key = os.environ.get("OPENAI_API_KEY")
     base = os.environ.get("OPENAI_BASE_URL", "https://api.openai.com/v1")
     if not api_key:
-        sys.exit("需要 OPENAI_API_KEY 环境变量")
+        raise ExtractionError("需要 OPENAI_API_KEY 环境变量")
 
     body = {
         "model": os.environ.get("OPENAI_MODEL", "gpt-4o-mini"),
@@ -99,7 +110,12 @@ def call_openai(material: str) -> dict:
     )
     with urllib.request.urlopen(req, timeout=60) as resp:
         data = json.loads(resp.read())
-    text = data["choices"][0]["message"]["content"]
+    try:
+        text = data["choices"][0]["message"]["content"]
+    except (KeyError, IndexError, TypeError) as exc:
+        raise ExtractionError("OpenAI response shape is invalid") from exc
+    if not isinstance(text, str):
+        raise ExtractionError("OpenAI response shape is invalid")
     return _parse_json(text)
 
 
@@ -107,11 +123,11 @@ def _parse_json(text: str) -> dict:
     """LLM 偶尔会把 JSON 包在 markdown fence 里。"""
     m = re.search(r"\{.*\}", text, re.S)
     if not m:
-        sys.exit(f"无法在 LLM 输出里找到 JSON：\n{text}")
+        raise ExtractionError("无法在 LLM 输出中找到 JSON 对象")
     return json.loads(m.group(0))
 
 
-def main():
+def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--input", required=True, help="原始素材文本或 .md")
     parser.add_argument("--out", required=True, help="输出 .json 路径")
@@ -120,17 +136,24 @@ def main():
 
     material = Path(args.input).read_text(encoding="utf-8") if Path(args.input).exists() else args.input
 
-    if args.provider == "mock":
-        # 用预置案例当输出，方便无 LLM 演示
-        result = json.loads((MOCK / "pediatric-aid.json").read_text(encoding="utf-8"))
-    elif args.provider == "anthropic":
-        result = call_anthropic(material)
-    else:
-        result = call_openai(material)
+    try:
+        if args.provider == "mock":
+            # 用预置案例当输出，方便无 LLM 演示
+            result = json.loads(
+                (MOCK / "pediatric-aid.json").read_text(encoding="utf-8")
+            )
+        elif args.provider == "anthropic":
+            result = call_anthropic(material)
+        else:
+            result = call_openai(material)
+    except (ExtractionError, OSError, json.JSONDecodeError) as exc:
+        print(f"错误：{exc}", file=sys.stderr)
+        return 2
 
     Path(args.out).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding="utf-8")
     print(f"已生成 {args.out}（provider={args.provider}）")
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

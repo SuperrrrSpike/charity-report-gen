@@ -141,6 +141,19 @@ class ReviewWorkflowTests(unittest.TestCase):
             with self.assertRaisesRegex(WorkflowError, "already exists"):
                 start_workflow(self.material, workspace, provider="mock")
 
+    def test_extraction_failure_does_not_leave_blocking_workspace(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            workspace = Path(temporary) / "case"
+
+            with mock.patch(
+                "workflow._extract_case",
+                side_effect=ValueError("fixture extraction failure"),
+            ):
+                with self.assertRaisesRegex(ValueError, "fixture extraction failure"):
+                    start_workflow(self.material, workspace, provider="mock")
+
+            self.assertFalse(workspace.exists())
+
     def test_audit_log_excludes_source_and_secret_values(self):
         with tempfile.TemporaryDirectory() as temporary:
             workspace = Path(temporary) / "case"
