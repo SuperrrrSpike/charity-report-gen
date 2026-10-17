@@ -20,3 +20,6 @@ jobs:
           for case in mock/*.json; do
             python scripts/render_report.py "$(basename "$case")" --out "/tmp/$(basename "$case" .json)"
           done
+      - run: python scripts/workflow.py start --input examples/pediatric-aid-source.md --workspace /tmp/charity-review --provider mock
+      - run: python scripts/workflow.py review --workspace /tmp/charity-review --approve --reviewer "CI Reviewer"
+      - run: python -c "from pathlib import Path; assert (Path('/tmp/charity-review/out/schema.json')).exists()"

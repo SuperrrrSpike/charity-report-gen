@@ -12,6 +12,8 @@
 
 帮助公益机构把已核验的项目材料快速整理为内部审阅稿、捐赠人友好稿和结构化披露字段。
 
+可恢复的人工复核工作流会记录素材哈希、校验结果和审批轨迹；只有人工批准后的案例才会生成正式输出文件。
+
 ## 解决的问题
 
 - 公益机构每年要做合规报告，格式严、手工整理耗时长，中小机构常因不合规被驳回。
@@ -31,7 +33,7 @@
 ```
 charity-report-gen/
 ├── web/
-│   ├── index.html        # 首页（3 个 mock ��例卡片）
+│   ├── index.html        # 首页（3 个 mock 案例卡片）
 │   └── demo.html         # 案例详情（B/C/Schema 三视图切换）
 ├── mock/
 │   ├── spark-library.json    # 星火图书馆 · 教育公平
@@ -39,7 +41,9 @@ charity-report-gen/
 │   └── flood-response.json   # 暴雨应急 · 应急响应
 ├── scripts/
 │   ├── render_report.py  # JSON → Markdown / Schema 渲染器（无依赖）
-│   └── extract.py        # 原始素材 → JSON 结构（AI 结构化提取）
+│   ├── extract.py        # 原始素材 → JSON 结构（AI 结构化提取）
+│   └── workflow.py       # 导入、校验、人工复核与发布工作流
+├── examples/             # 仅供演示的虚构原始素材
 ├── out/                  # render_report.py 输出（每个案例一份）
 │   └── <case-id>/
 │       ├── standard.md   # B 端标准合规版
@@ -50,6 +54,28 @@ charity-report-gen/
 ```
 
 ## 快速演示
+
+### Agent 人工复核工作流
+
+```bash
+# 导入并校验原始素材；此时不会生成报告
+python3 scripts/workflow.py start \
+  --input examples/pediatric-aid-source.md \
+  --workspace runs/pediatric-aid \
+  --provider mock
+
+# 查看状态并人工复核
+python3 scripts/workflow.py status --workspace runs/pediatric-aid
+python3 scripts/workflow.py review \
+  --workspace runs/pediatric-aid \
+  --approve \
+  --reviewer "Reviewer Name" \
+  --note "已核对示例素材"
+```
+
+批准后，`runs/pediatric-aid/out/` 才会出现标准版、捐赠人版和结构化披露文件。拒绝时使用 `--reject --reason "拒绝原因"`，工作流会保留审计记录但不会发布报告。
+
+### 直接渲染预置案例
 
 ```bash
 # 1. 渲染 mock 案例
@@ -66,6 +92,7 @@ python3 -m http.server 8000
 
 - **AI 不能做**：财务数字生成（必须来自机构原始数据）、合规签字（必须机构法人确认）、审计结论。
 - **AI 适合做**：结构化抽取、文案润色、跨格式改写（标准版 ↔ 捐赠人版）、风险字段初筛。
+- **工作流约束**：财务与受益数据必须能在原始素材中找到证据，未通过人工批准不得生成发布文件。
 - **mock 数据原则**：财务数字、机构登记号、审计日期均为虚构示例，不指向任何真实机构或项目。
 - **发布责任**：程序输出始终是待审阅草稿，不能自动声明材料真实、完成审计或满足全部法定义务。
 
