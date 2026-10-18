@@ -42,7 +42,7 @@ class ExtractionTests(unittest.TestCase):
         ):
             with self.assertRaisesRegex(ExtractionError, "OPENAI_API_KEY"):
                 call_openai("fixture")
-            with self.assertRaisesRegex(ExtractionError, "ANTHROPIC_API_KEY"):
+            with self.assertRaisesRegex(ExtractionError, "--provider mock"):
                 call_anthropic("fixture")
 
     def test_invalid_model_output_is_not_echoed_in_error(self):

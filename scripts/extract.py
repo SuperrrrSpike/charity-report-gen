@@ -58,7 +58,7 @@ def call_anthropic(material: str) -> dict:
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
         raise ExtractionError(
-            "需要 ANTHROPIC_API_KEY 环境变量，或改用 --mock 走离线示例"
+            "需要 ANTHROPIC_API_KEY 环境变量，或改用 --provider mock 走离线示例"
         )
 
     body = {
